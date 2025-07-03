@@ -1,0 +1,15 @@
+# .clasp.json には実際のスクリプトIDが含まれるため、gitignoreに追加
+.clasp.json
+
+# Node.js dependencies
+node_modules/
+
+# OS specific
+.DS_Store
+Thumbs.db
+
+# Editor files
+.idea/
+.vscode/
+*.swp
+*.swo
