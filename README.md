@@ -42,10 +42,8 @@ cp .clasp.json.example .clasp.json
 
 ### 3. Google Apps Script APIの有効化
 
-1. [Google Cloud Console](https://console.cloud.google.com/)にアクセス
-2. プロジェクトを選択
-3. APIとサービス > ライブラリ
-4. 「Google Apps Script API」を検索して有効化
+1. [Google Apps Script Settings](https://script.google.com/home/usersettings)にアクセス
+2. 「Google Apps Script API」をオンに設定
 
 ### 4. claspにログインしてGASにデプロイ
 
