@@ -11,7 +11,14 @@ GoogleスプレッドシートにRSSフィードのURLリストを管理し、�
 
 ## セットアップ方法
 
-### 1. Google Chat Webhook設定
+セットアップは以下の2つの方法から選べます：
+
+- **方法A**: GASエディタで直接コードを編集（コード管理なし）
+- **方法B**: claspでローカル開発・デプロイ（コード管理あり）
+
+### 方法A：GASエディタで直接セットアップ
+
+#### 1. Google Chat Webhook設定
 
 1. Google Chatで通知先のスペースを開く
 2. スペース名をクリック → 「アプリと統合」を選択
@@ -23,36 +30,92 @@ GoogleスプレッドシートにRSSフィードのURLリストを管理し、�
    - （オプション）説明：「RSSの新着記事を通知します」
 6. 「保存」をクリックして発行されたURLをコピー
 
-### 2. スプレッドシート準備
+#### 2. スプレッドシート準備
 
 1. 新規Googleスプレッドシートを作成
 2. 「拡張機能」→「Apps Script」を選択
-3. 全てのコードをこのリポジトリのコードに置き換え
+3. src/ディレクトリ内の各.gsファイルの内容をGASエディタに貼り付け
+   - 同名のファイルを作成（Code.gs, Config.gs等）
+   - appsscript.jsonの内容も設定から反映
 4. プロジェクト設定からスクリプトプロパティを設定：
    - `WEBHOOK_URL`: 上記で取得したWebhook URL
 
-### 3. トリガー設定
+#### 3. トリガー設定
 
 1. エディタで「setupTrigger」関数を実行
 
-## リポジトリ管理方法
+### 方法B：claspでセットアップ（詳細は後述）
 
-### claspの設定
+1. リポジトリをローカルに準備
+2. claspをセットアップしてGASとの連携設定
+3. コードをプッシュしてWebhook URLなどを設定
+
+## 開発・デプロイ手順
+
+### 1. 開発環境セットアップ
 
 ```bash
-# claspのインストール
-npm install -g @google/clasp
+# プロジェクトディレクトリに移動
+cd rss-notification-system
 
-# claspにログイン
-clasp login
+# claspをプロジェクトローカルにインストール
+npm install @google/clasp --save-dev
 
-# .clasp.jsonの作成（.clasp.json.exampleをコピー）
+# .clasp.jsonの作成
 cp .clasp.json.example .clasp.json
-# スクリプトIDを設定
-
-# GASへプッシュ
-clasp push
 ```
+
+### 2. スクリプトIDの設定
+
+`.clasp.json` ファイルを開き、GASプロジェクトのスクリプトIDを設定します：
+
+```json
+{
+  "scriptId": "YOUR_SCRIPT_ID_HERE",
+  "rootDir": "src"
+}
+```
+
+スクリプトIDの確認方法:
+- GASエディタで「プロジェクトの設定」を開く
+- 「スクリプトID」の値をコピー
+
+### 3. Google Apps Script APIの有効化
+
+1. [Google Cloud Console](https://console.cloud.google.com/)にアクセス
+2. プロジェクトを選択
+3. APIとサービス > ライブラリ
+4. 「Google Apps Script API」を検索して有効化
+
+### 4. claspにログインしてGASにデプロイ
+
+```bash
+# ログイン（ブラウザが開き認証が要求されます）
+npx clasp login
+
+# GASにコードをプッシュ
+npx clasp push
+
+# または、package.jsonのスクリプトを利用
+npm run login
+npm run push
+```
+
+### 5. スクリプトプロパティの設定
+
+1. `npm run open` または `npx clasp open` でGASエディタを開く
+2. 「プロジェクトの設定」→「スクリプトプロパティ」を選択
+3. 以下のプロパティを追加：
+   - `WEBHOOK_URL`: Google ChatのWebhook URL
+   - `SHEET_ID`: (オプション) スプレッドシートID
+   - `RSS_SHEET_NAME`: (オプション) RSSシート名
+   - `CONFIG_SHEET_NAME`: (オプション) 設定シート名
+
+### 6. 権限とトリガーの設定
+
+1. GASエディタで `setupTrigger` 関数を実行
+2. 必要な権限をすべて許可
+3. 手動実行で初期設定を確認：`main` 関数を実行
 
 ## ファイル構成
 

@@ -1,0 +1,28 @@
+{
+  "name": "rss-notification-system",
+  "version": "1.0.0",
+  "description": "GoogleスプレッドシートにRSSフィードのURLリストを管理し、毎日定時に新着記事をチェックしてGoogle Chatに通知するシステム。",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "login": "clasp login",
+    "push": "clasp push",
+    "deploy": "clasp deploy",
+    "open": "clasp open"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://ayumu-takagi@github.com/ayumu-takagi/rss-notification-system.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/ayumu-takagi/rss-notification-system/issues"
+  },
+  "homepage": "https://github.com/ayumu-takagi/rss-notification-system#readme",
+  "devDependencies": {
+    "@google/clasp": "^3.0.6-alpha"
+  }
+}
