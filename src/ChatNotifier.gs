@@ -24,65 +24,34 @@ function sendToGoogleChat(feedName, articles) {
       return;
     }
     
-    // カード形式のペイロードを作成
-    const cardHeader = {
-      "title": config.notificationTitle,
-      "subtitle": `${feedName} - 新着記事 ${articles.length}件`,
-      "imageUrl": config.iconUrl || "https://www.gstatic.com/images/icons/material/system/2x/rss_feed_black_48dp.png"
-    };
+    // シンプルなテキスト形式でのメッセージを作成
+    let text = `*${config.notificationTitle}*\n`;
+    text += `${feedName} - 新着記事 ${articles.length}件\n\n`;
     
-    const sections = [];
-    
-    // 記事ごとのセクションを作成
+    // 記事ごとのテキストを作成
     articles.forEach(article => {
       // 日時のフォーマット
       const pubDate = article.pubDate instanceof Date ? 
                       Utilities.formatDate(article.pubDate, 'Asia/Tokyo', 'yyyy/MM/dd HH:mm') : 
                       '日時不明';
       
-      // カードセクション作成
-      sections.push({
-        "widgets": [
-          {
-            "textParagraph": {
-              "text": `<b>${article.title || 'タイトルなし'}</b><br>${pubDate}`
-            }
-          },
-          {
-            "buttonList": {
-              "buttons": [
-                {
-                  "text": "記事を開く",
-                  "onClick": {
-                    "openLink": {
-                      "url": article.link
-                    }
-                  }
-                }
-              ]
-            }
-          },
-          {
-            "decoratedText": {
-              "text": article.description ? article.description.substring(0, 300) + (article.description.length > 300 ? '...' : '') : '',
-              "wrapText": true
-            }
-          },
-          {
-            "divider": {}
-          }
-        ]
-      });
+      // 記事情報
+      text += `*${article.title || 'タイトルなし'}*\n`;
+      text += `${pubDate}\n`;
+      text += `${article.link}\n`;
+      
+      // 説明（300文字まで）
+      if (article.description) {
+        const shortDesc = article.description.substring(0, 300) + (article.description.length > 300 ? '...' : '');
+        text += `${shortDesc}\n`;
+      }
+      
+      text += `\n---\n\n`;  // 記事間の区切り
     });
     
     // ペイロード作成
     const payload = {
-      "cards": [
-        {
-          "header": cardHeader,
-          "sections": sections
-        }
-      ]
+      "text": text
     };
     
     // HTTPリクエスト設定
