@@ -81,16 +81,17 @@ function createRssSheet(spreadsheet, sheetName) {
   const rssSheet = spreadsheet.insertSheet(sheetName);
   
   // ヘッダー設定
-  rssSheet.getRange('A1:E1').setValues([['RSS URL', 'フィード名', '有効フラグ', '最終取得日時', 'エラー回数']]);
+  rssSheet.getRange('A1:F1').setValues([['RSS URL', 'フィード名', '有効フラグ', '最終取得日時', 'エラー回数', '既知の記事URL']]);
   rssSheet.getRange('C2:C').insertCheckboxes();
   
   // フォーマット設定
-  rssSheet.getRange('A1:E1').setFontWeight('bold');
+  rssSheet.getRange('A1:F1').setFontWeight('bold');
   rssSheet.setColumnWidth(1, 300);
   rssSheet.setColumnWidth(2, 200);
   rssSheet.setColumnWidth(3, 100);
   rssSheet.setColumnWidth(4, 150);
   rssSheet.setColumnWidth(5, 100);
+  rssSheet.setColumnWidth(6, 400); // 既知の記事URLリスト用に広めに設定
   
   // サンプルデータ
   rssSheet.getRange('A2:C2').setValues([['https://news.google.com/rss', 'Googleニュース', true]]);
@@ -192,21 +193,89 @@ function getElementText(element, name, namespace) {
 }
 
 /**
- * 新着記事を確認
+ * 新着記事を確認（URL比較ベース）
  * @param {Array} articles - 記事リスト
- * @param {Date|null} lastFetchTime - 前回取得時刻
+ * @param {number} row - スプレッドシートの行番号
  * @return {Array} 新着記事
  */
-function checkNewArticles(articles, lastFetchTime) {
-  if (!lastFetchTime) {
-    // 初回の場合は最新5件のみ返す
-    return articles.slice(0, 5);
+function checkNewArticles(articles, row) {
+  // 既知の記事URLリストを取得
+  const knownUrls = getKnownArticleUrls(row);
+  
+  // 新着記事を抽出（URLが既知のリストにないもの）
+  const newArticles = articles.filter(article => {
+    return article.link && !knownUrls.includes(article.link);
+  });
+  
+  // 新着がある場合は既知のURLリストを更新
+  if (articles.length > 0) {
+    // 今回取得した全記事のURLリストを作成（最大100件程度に制限）
+    const allUrls = articles
+      .filter(article => article.link)
+      .map(article => article.link)
+      .slice(0, 100);
+    saveKnownArticleUrls(row, allUrls);
   }
   
-  // 前回取得時刻以降の記事を抽出
-  return articles.filter(article => {
-    return article.pubDate > lastFetchTime;
-  });
+  // 初回実行時（既知URLが空）は最新5件のみ返す
+  if (knownUrls.length === 0 && newArticles.length > 5) {
+    return newArticles.slice(0, 5);
+  }
+  
+  return newArticles;
+}
+
+/**
+ * 既知の記事URLリストを取得
+ * @param {number} row - スプレッドシートの行番号
+ * @return {Array} URLリスト
+ */
+function getKnownArticleUrls(row) {
+  try {
+    const config = getConfig();
+    const spreadsheetId = PropertiesService.getScriptProperties().getProperty('SHEET_ID') || 
+                         SpreadsheetApp.getActiveSpreadsheet().getId();
+    const spreadsheet = SpreadsheetApp.openById(spreadsheetId);
+    const sheet = spreadsheet.getSheetByName(config.rssSheetName);
+    
+    // F列（既知の記事URL）を取得
+    const urlsJson = sheet.getRange(row, 6).getValue();
+    
+    // 空の場合は空配列を返す
+    if (!urlsJson) return [];
+    
+    // JSONをパース
+    try {
+      return JSON.parse(urlsJson);
+    } catch (e) {
+      console.error(`Error parsing known URLs JSON: ${e.message}`);
+      return [];
+    }
+  } catch (error) {
+    console.error(`Error getting known article URLs: ${error.message}`);
+    return [];
+  }
+}
+
+/**
+ * 既知の記事URLリストを保存
+ * @param {number} row - スプレッドシートの行番号
+ * @param {Array} urls - URLリスト
+ */
+function saveKnownArticleUrls(row, urls) {
+  try {
+    const config = getConfig();
+    const spreadsheetId = PropertiesService.getScriptProperties().getProperty('SHEET_ID') || 
+                         SpreadsheetApp.getActiveSpreadsheet().getId();
+    const spreadsheet = SpreadsheetApp.openById(spreadsheetId);
+    const sheet = spreadsheet.getSheetByName(config.rssSheetName);
+    
+    // JSONに変換してF列に保存
+    const urlsJson = JSON.stringify(urls);
+    sheet.getRange(row, 6).setValue(urlsJson);
+  } catch (error) {
+    console.error(`Error saving known article URLs: ${error.message}`);
+  }
 }
 
 /**

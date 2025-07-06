@@ -29,15 +29,15 @@ function main() {
           continue;
         }
         
-        // 新着記事を確認
-        const newArticles = checkNewArticles(feedData.items, feed.lastFetchTime);
+        // 新着記事を確認（記事URLベースで判定）
+        const newArticles = checkNewArticles(feedData.items, feed.row);
         
         // 新着記事があれば通知
         if (newArticles.length > 0) {
           sendToGoogleChat(feed.name || feed.url, newArticles);
         }
         
-        // 最終取得時間を更新
+        // 最終取得時間を更新（履歴用、実際の判定には使用しない）
         updateLastFetchTime(feed.row, new Date());
         
         // エラーカウントをリセット
