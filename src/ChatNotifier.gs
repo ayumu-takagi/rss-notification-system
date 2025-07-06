@@ -35,16 +35,10 @@ function sendToGoogleChat(feedName, articles) {
                       Utilities.formatDate(article.pubDate, 'Asia/Tokyo', 'yyyy/MM/dd HH:mm') : 
                       '日時不明';
       
-      // 記事情報
+      // 記事情報（Descriptionなし）
       text += `*${article.title || 'タイトルなし'}*\n`;
       text += `${pubDate}\n`;
       text += `${article.link}\n`;
-      
-      // 説明（300文字まで）
-      if (article.description) {
-        const shortDesc = article.description.substring(0, 300) + (article.description.length > 300 ? '...' : '');
-        text += `${shortDesc}\n`;
-      }
       
       text += `\n---\n\n`;  // 記事間の区切り
     });
